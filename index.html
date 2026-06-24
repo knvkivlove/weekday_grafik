@@ -36,6 +36,7 @@
             flex-direction: column;
             align-items: center;
             padding: 0 5px;
+            overflow-x: hidden; /* Защита от горизонтальной прокрутки всей страницы */
         }
 
         .controls-panel {
@@ -93,13 +94,21 @@
             text-transform: uppercase;
         }
 
+        /* Контейнер для центрирования масштабируемого листа на мобильных */
+        .sheet-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
         .a4-sheet {
             background-color: var(--card-bg);
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            transform-origin: top center;
+            transform-origin: top left; /* Исправлен баг смещения: привязка к левому верхнему углу */
             transition: transform 0.1s ease-out;
+            flex-shrink: 0;
         }
 
         .sheet-landscape {
@@ -194,7 +203,6 @@
             width: 100%;
         }
 
-        /* Названия пунктов теперь никогда не переносятся на вторую строчку */
         .col-left {
             font-weight: bold;
             color: #333333;
@@ -220,7 +228,6 @@
             padding: 0 2px;
         }
 
-        /* ФИО по-прежнему может переноситься, если строка длинная */
         .col-right {
             font-weight: bold;
             color: var(--text-blue); 
@@ -272,12 +279,16 @@
             text-align: center;
         }
 
+        /* Название речи РС: Увеличено на 1pt, без подчеркивания, КАПСОМ, разрешен перенос на 2 строки */
         .rs-speech-title {
-            font-size: 8.5pt;
+            font-size: 9.5pt; 
             font-weight: bold;
             color: var(--rs-red); 
-            text-decoration: underline;
-            line-height: 1.2;
+            text-transform: uppercase; 
+            text-decoration: none; 
+            white-space: normal; 
+            word-wrap: break-word;
+            line-height: 1.3;
         }
 
         .congress-container {
@@ -334,10 +345,12 @@
             <button class="btn btn-danger" onclick="window.print()">🖨️ Печать / PDF</button>
         </div>
 
-        <div class="a4-sheet sheet-portrait" id="a4Sheet">
-            <div class="main-schedule-title">Наша христианская жизнь и служение</div>
-            <div class="grid-container mode-2x2" id="gridContainer">
-                <div class="loading" id="loading-state">Загрузка данных из Google Таблицы...</div>
+        <div class="sheet-container">
+            <div class="a4-sheet sheet-portrait" id="a4Sheet">
+                <div class="main-schedule-title">Наша христианская жизнь и служение</div>
+                <div class="grid-container mode-2x2" id="gridContainer">
+                    <div class="loading" id="loading-state">Загрузка данных из Google Таблицы...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -425,7 +438,6 @@
                 let loadedWeeks = [];
                 const columnsCount = matrix[2] ? matrix[2].length : 0;
 
-                // Точный поиск стартового столбца по галочке TRUE в первой строке (matrix[0])
                 let startColumnIndex = -1;
                 for (let col = 1; col < columnsCount; col++) {
                     const isSelected = matrix[0]?.[col];
@@ -448,7 +460,6 @@
                     
                     let weekObj = { date: prettyDate, type: 'normal' };
 
-                    // Определение конгресса
                     if (weekType.includes('конгресс') || weekType.includes('congress')) {
                         weekObj.type = 'congress';
                         weekObj.congressText = matrix[50]?.[col] || 'РАЙОННЫЙ КОНГРЕСС';
@@ -465,14 +476,12 @@
                     weekObj.song1 = matrix[5]?.[col] || '';
                     weekObj.prayer1 = matrix[6]?.[col] || '';
 
-                    // Сокровища из Слова Бога (Строка 14 -> индекс 13)
                     weekObj.treasures = [
                         { name: "Пункт № 1", time: matrix[8]?.[col] || '', assign: matrix[9]?.[col] || '' },
                         { name: "Духовные жемчужины", time: matrix[10]?.[col] || '', assign: matrix[11]?.[col] || '' },
                         { name: "Чтение Библии", time: matrix[12]?.[col] || '', assign: matrix[13]?.[col] || '' }
                     ];
 
-                    // Оттачиваем навыки служения (Всегда оригинальные названия)
                     weekObj.skills = [];
                     const ministryRows = [15, 18, 21, 24];
                     ministryRows.forEach(rIdx => {
@@ -488,7 +497,6 @@
                         }
                     });
 
-                    // Христианская жизнь
                     weekObj.living = {
                         song2: matrix[29]?.[col] || '',
                         song2Time: matrix[28]?.[col] || '',
@@ -508,7 +516,6 @@
                         }
                     });
 
-                    // Ветвление логики для Визита РС (Строки 45-48)
                     if (weekObj.type === 'rs') {
                         weekObj.living.rsSpeech = {
                             time: '', 
@@ -765,9 +772,14 @@
                 const scale = (window.innerWidth - 10) / targetWidth; 
                 sheet.style.transform = `scale(${scale})`;
                 sheet.style.marginBottom = `calc(${targetHeight}px * (${scale} - 1))`;
+                
+                // Исправление бага центрирования при загрузке: добавляем левый отступ, равный разнице сжатия
+                const totalScrolledSpace = (window.innerWidth - (targetWidth * scale)) / 2;
+                sheet.style.marginLeft = '0px'; 
             } else {
                 sheet.style.transform = 'none';
                 sheet.style.marginBottom = '0px';
+                sheet.style.marginLeft = '0px';
             }
         }
 
