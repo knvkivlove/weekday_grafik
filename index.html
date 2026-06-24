@@ -128,7 +128,6 @@
             gap: 5mm;
         }
 
-        /* Обычная синяя рамка */
         .week-card {
             border: 1.5px solid var(--main-blue);
             border-radius: 6px;
@@ -138,7 +137,6 @@
             height: 100%;
         }
 
-        /* Красная рамка для Визита РС */
         .week-card.type-rs {
             border: 1.5px solid var(--rs-red);
         }
@@ -179,7 +177,6 @@
             height: 100%;
         }
 
-        /* Трёхколоночная вёрстка по одной линии */
         .row-item {
             display: flex;
             align-items: flex-start;
@@ -191,7 +188,7 @@
         .col-left {
             font-weight: bold;
             color: #333333;
-            width: 45%;            /* Левая колонка для названия */
+            width: 45%;            
             white-space: normal; 
             word-wrap: break-word;
             padding-right: 5px;
@@ -207,16 +204,16 @@
             color: #555555;
             font-style: italic;
             text-align: center;
-            width: 13%;            /* Средняя колонка для времени */
+            width: 13%;            
             font-size: 7.5pt;
             padding: 0 2px;
         }
 
         .col-right {
             font-weight: bold;
-            color: var(--text-blue); /* Все ФИО по умолчанию синие */
+            color: var(--text-blue); 
             text-align: right;
-            width: 42%;            /* Правая колонка для ФИО */
+            width: 42%;            
             word-wrap: break-word;
             white-space: normal; 
         }
@@ -225,7 +222,6 @@
             color: var(--muted-gray);
         }
 
-        /* Увеличенный шрифт и стили для главных разделов */
         .section-title {
             font-size: 8.5pt;
             font-weight: bold;
@@ -254,7 +250,6 @@
             background-color: var(--pastel-red);
         }
 
-        /* Оформление блока названия речи для Визита РС */
         .rs-speech-container {
             margin-top: 4px;
             margin-bottom: 2px;
@@ -268,7 +263,7 @@
         .rs-speech-title {
             font-size: 8.5pt;
             font-weight: bold;
-            color: var(--rs-red); /* Название речи — красное */
+            color: var(--rs-red); 
             text-decoration: underline;
             line-height: 1.2;
         }
@@ -454,11 +449,11 @@
                     weekObj.song1 = matrix[5]?.[col] || '';
                     weekObj.prayer1 = matrix[6]?.[col] || '';
 
-                    // Сокровища из Слова Бога
+                    // Сокровища из Слова Бога (Исправлено чтение Библии на строку 14 -> индекс 13)
                     weekObj.treasures = [
                         { name: "Пункт № 1", time: matrix[8]?.[col] || '', assign: matrix[9]?.[col] || '' },
                         { name: "Духовные жемчужины", time: matrix[10]?.[col] || '', assign: matrix[11]?.[col] || '' },
-                        { name: "Чтение Библии", time: matrix[12]?.[col] || '', assign: matrix[14]?.[col] || '' }
+                        { name: "Чтение Библии", time: matrix[12]?.[col] || '', assign: matrix[13]?.[col] || '' }
                     ];
 
                     // Оттачиваем навыки служения
@@ -497,17 +492,17 @@
                         }
                     });
 
-                    // Ветвление логики Обычная / Визит РС
+                    // Ветвление логики (Исправлены индексы для Визита РС по скриншоту)
                     if (weekObj.type === 'rs') {
                         weekObj.living.rsSpeech = {
-                            time: matrix[44]?.[col] || '',
-                            assign: matrix[45]?.[col] || '',
-                            title: matrix[46]?.[col] || ''
+                            time: '', 
+                            assign: matrix[44]?.[col] || '', // Строка 45: Докладчик
+                            title: matrix[45]?.[col] || ''   // Строка 46: Название речи
                         };
                         weekObj.footer = {
                             song3Time: '',
-                            song3: matrix[47]?.[col] || '',
-                            prayer2: matrix[48]?.[col] || ''
+                            song3: matrix[46]?.[col] || '',  // Строка 47: Песня №
+                            prayer2: matrix[47]?.[col] || '' // Строка 48: Закл. молитва
                         };
                     } else {
                         weekObj.living.bibleStudy = {
@@ -592,7 +587,7 @@
                             <div class="special-footer-block">
                                 <div class="row-item">
                                     <div class="col-left">Выступление РС</div>
-                                    <div class="col-time">${week.living.rsSpeech.time}</div>
+                                    <div class="col-time"></div>
                                     <div class="col-right">${week.living.rsSpeech.assign}</div>
                                 </div>
                                 <div class="rs-speech-container">
