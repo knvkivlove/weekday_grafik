@@ -96,7 +96,7 @@
 
         .sheet-container {
             width: 100%;
-            display: block; /* Изменено для точного расчета позиции трансформации */
+            display: block;
             position: relative;
         }
 
@@ -105,7 +105,7 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            transform-origin: 0 0; /* Жесткая привязка к левому верхнему углу для избежания обрезки */
+            transform-origin: 0 0;
             transition: transform 0.1s ease-out;
             flex-shrink: 0;
             margin: 0 auto;
@@ -213,7 +213,6 @@
             padding-right: 5px;
         }
 
-        /* Стиль для учебных заданий (Оттачиваем навыки + Чтение Библии) */
         .row-item.role-partner .col-left,
         .row-item.role-student .col-right {
             color: var(--muted-gray);
@@ -271,13 +270,13 @@
             background-color: var(--pastel-red);
         }
 
+        /* Полностью очищенный контейнер для речи: убран пунктир и белая подложка */
         .rs-speech-container {
             margin-top: 4px;
             margin-bottom: 2px;
-            padding: 4px;
-            border: 1px dashed var(--rs-red);
-            border-radius: 4px;
-            background-color: #ffffff;
+            padding: 4px 2px;
+            border: none;
+            background-color: transparent;
             text-align: center;
         }
 
@@ -292,7 +291,6 @@
             line-height: 1.3;
         }
 
-        /* Убрана пунктирная рамка у Конгресса, легкая плашка сохранена */
         .congress-container {
             display: flex;
             flex-grow: 1;
@@ -430,6 +428,12 @@
             return cleaned;
         }
 
+        // Очистка названия речи от внешних кавычек (оставляет текст ровно как в таблице)
+        function cleanSpeechTitle(rawTitle) {
+            if (!rawTitle) return '';
+            return rawTitle.trim().replace(/^["'«„]|["'»“]$/g, '');
+        }
+
         async function loadScheduleFromGoogle() {
             try {
                 const response = await fetch(`${CSV_URL}&nocache=${new Date().getTime()}`);
@@ -522,7 +526,7 @@
                         weekObj.living.rsSpeech = {
                             time: '', 
                             assign: matrix[44]?.[col] || '', 
-                            title: matrix[45]?.[col] || ''   
+                            title: cleanSpeechTitle(matrix[45]?.[col] || '')
                         };
                         weekObj.footer = {
                             song3Time: '',
@@ -585,7 +589,6 @@
                     
                     let treasuresHTML = '';
                     week.treasures.forEach(t => {
-                        // Добавлен класс role-student для "Чтения Библии", чтобы ФИО стало серым
                         const isBibleReading = t.name.includes("Чтение Библии");
                         treasuresHTML += `
                             <div class="row-item ${isBibleReading ? 'role-student' : ''}">
@@ -625,7 +628,7 @@
                                     <div class="col-right">${week.living.rsSpeech.assign}</div>
                                 </div>
                                 <div class="rs-speech-container">
-                                    <div class="rs-speech-title">${week.living.rsSpeech.title ? `"${week.living.rsSpeech.title}"` : '&nbsp;'}</div>
+                                    <div class="rs-speech-title">${week.living.rsSpeech.title ? `${week.living.rsSpeech.title}` : '&nbsp;'}</div>
                                 </div>
                             </div>
                         `;
@@ -769,7 +772,6 @@
             setTimeout(syncSkillsHeight, 50);
         }
 
-        // ПОЛНОСТЬЮ ОБНОВЛЕННАЯ ФУНКЦИЯ ДЛЯ ИСПРАВЛЕНИЯ ЗУМА И СДВИГА НА МОБИЛЬНЫХ
         function adjustMobileScale(currentMode) {
             const sheet = document.getElementById('a4Sheet');
             if (!sheet) return;
@@ -783,11 +785,8 @@
             if (window.innerWidth < (targetWidth + 20)) {
                 const scale = screenWidth / targetWidth; 
                 sheet.style.transform = `scale(${scale})`;
-                
-                // Компенсируем нижний отступ, который появляется из-за сжатия
                 sheet.style.marginBottom = `calc(${targetHeight}px * (${scale} - 1))`;
                 
-                // РАССЧИТЫВАЕМ ТОЧНЫЙ ОТСТУП ДЛЯ ИДЕАЛЬНОГО ЦЕНТРИРОВАНИЯ БЕЗ СДВИГОВ И ОБРЕЗОК
                 const leftOffset = (window.innerWidth - (targetWidth * scale)) / 2;
                 sheet.style.marginLeft = `${leftOffset}px`; 
             } else {
