@@ -11,7 +11,7 @@
             --main-blue: #0066b3; 
             --text-dark: #000000;
             --text-blue: #0066b3;
-            --muted-gray: #777777; 
+            --muted-gray: #555555; /* Сделали более темно-серым для лучшей читаемости */
             --rs-red: #d32f2f;   
             --pastel-blue: #e6f2fa; 
             --pastel-red: #fdf2f2;  
@@ -242,6 +242,11 @@
             color: var(--muted-gray);
         }
 
+        /* УВЕЛИЧЕНИЕ ФИО НА 2 ПУНКТА В РЕЖИМЕ 2х2 (Книжный А4) */
+        .mode-2x2 .col-right {
+            font-size: 10pt;
+        }
+
         .section-title {
             font-size: 8.5pt;
             font-weight: bold;
@@ -270,7 +275,6 @@
             background-color: var(--pastel-red);
         }
 
-        /* Полностью очищенный контейнер для речи: убран пунктир и белая подложка */
         .rs-speech-container {
             margin-top: 4px;
             margin-bottom: 2px;
@@ -428,7 +432,6 @@
             return cleaned;
         }
 
-        // Очистка названия речи от внешних кавычек (оставляет текст ровно как в таблице)
         function cleanSpeechTitle(rawTitle) {
             if (!rawTitle) return '';
             return rawTitle.trim().replace(/^["'«„]|["'»“]$/g, '');
@@ -653,7 +656,7 @@
                                 <div class="row-item"><div class="col-left">Песня</div><div class="col-time"></div><div class="col-right">${s1Text}</div></div>
                                 <div class="row-item"><div class="col-left">Вступ. молитва</div><div class="col-time"></div><div class="col-right">${week.prayer1}</div></div>
                                 
-                                <div class="section-title">💎 Сокровища из Слова Бога</div>
+                                <div class="section-title">💎 Сокровища из Слово Бога</div>
                                 ${treasuresHTML}
 
                                 <div class="section-title">📢 Оттачиваем навыки служения</div>
