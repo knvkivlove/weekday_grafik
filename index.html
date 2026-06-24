@@ -72,7 +72,6 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            transition: background-color 0.2s, opacity 0.2s;
         }
         .btn-secondary { background-color: #555555; }
         .btn-navigation { background-color: #2e7d32; } 
@@ -129,6 +128,7 @@
             gap: 5mm;
         }
 
+        /* Обычная синяя рамка */
         .week-card {
             border: 1.5px solid var(--main-blue);
             border-radius: 6px;
@@ -138,6 +138,11 @@
             height: 100%;
         }
 
+        /* Красная рамка для Визита РС */
+        .week-card.type-rs {
+            border: 1.5px solid var(--rs-red);
+        }
+
         .week-header {
             background-color: var(--pastel-blue);
             padding: 5px;
@@ -145,10 +150,19 @@
             text-align: center;
         }
 
+        .week-card.type-rs .week-header {
+            background-color: var(--pastel-red);
+            border-bottom: 1.5px solid var(--rs-red);
+        }
+
         .week-date {
             font-size: 9.5pt;
             font-weight: bold;
             color: var(--text-blue);
+        }
+
+        .week-card.type-rs .week-date {
+            color: var(--rs-red);
         }
 
         .week-body {
@@ -165,7 +179,7 @@
             height: 100%;
         }
 
-        /* Трёхколоночная структура строки с выравниванием по линии */
+        /* Трёхколоночная вёрстка по одной линии */
         .row-item {
             display: flex;
             align-items: flex-start;
@@ -177,7 +191,7 @@
         .col-left {
             font-weight: bold;
             color: #333333;
-            width: 45%;            /* Фиксированная ширина левой колонки */
+            width: 45%;            /* Левая колонка для названия */
             white-space: normal; 
             word-wrap: break-word;
             padding-right: 5px;
@@ -189,20 +203,20 @@
         }
 
         .col-time {
-            font-weight: bold;
+            font-weight: normal;
             color: #555555;
             font-style: italic;
             text-align: center;
-            width: 13%;            /* Фиксированная ширина колонки времени */
+            width: 13%;            /* Средняя колонка для времени */
             font-size: 7.5pt;
             padding: 0 2px;
         }
 
         .col-right {
             font-weight: bold;
-            color: var(--text-blue);
+            color: var(--text-blue); /* Все ФИО по умолчанию синие */
             text-align: right;
-            width: 42%;            /* Фиксированная ширина правой колонки */
+            width: 42%;            /* Правая колонка для ФИО */
             word-wrap: break-word;
             white-space: normal; 
         }
@@ -211,12 +225,13 @@
             color: var(--muted-gray);
         }
 
+        /* Увеличенный шрифт и стили для главных разделов */
         .section-title {
-            font-size: 7.5pt;
+            font-size: 8.5pt;
             font-weight: bold;
-            color: #444444;
+            color: #222222;
             text-transform: uppercase;
-            margin-top: 5px; 
+            margin-top: 6px; 
             margin-bottom: 3px;
             border-bottom: 1px solid var(--border-gray);
             padding-bottom: 1px;
@@ -235,23 +250,26 @@
             background-color: var(--pastel-blue);
         }
 
-        /* Специфичное выделение только для названия речи в Визите РС */
+        .week-card.type-rs .special-footer-block {
+            background-color: var(--pastel-red);
+        }
+
+        /* Оформление блока названия речи для Визита РС */
         .rs-speech-container {
             margin-top: 4px;
             margin-bottom: 2px;
             padding: 4px;
-            border: 1px solid var(--rs-red);
+            border: 1px dashed var(--rs-red);
             border-radius: 4px;
-            background-color: var(--pastel-red);
+            background-color: #ffffff;
             text-align: center;
         }
 
         .rs-speech-title {
-            font-size: 9pt;
+            font-size: 8.5pt;
             font-weight: bold;
-            color: var(--rs-red);
+            color: var(--rs-red); /* Название речи — красное */
             text-decoration: underline;
-            text-transform: uppercase;
             line-height: 1.2;
         }
 
@@ -431,21 +449,21 @@
                         weekObj.type = 'rs';
                     }
 
-                    weekObj.chairman = matrix[5]?.[col] || '';
-                    weekObj.song1Time = matrix[4]?.[col] ? `${matrix[4]?.[col]}` : '';
-                    weekObj.song1 = matrix[6]?.[col] || '';
-                    weekObj.prayer1 = matrix[7]?.[col] || '';
+                    weekObj.chairman = matrix[4]?.[col] || ''; 
+                    weekObj.song1Time = matrix[3]?.[col] ? `${matrix[3]?.[col]}` : '';
+                    weekObj.song1 = matrix[5]?.[col] || '';
+                    weekObj.prayer1 = matrix[6]?.[col] || '';
 
-                    // Сокровища из Слова
+                    // Сокровища из Слова Бога
                     weekObj.treasures = [
-                        { name: "Пункт № 1", time: matrix[9]?.[col] || '', assign: matrix[10]?.[col] || '' },
-                        { name: "Духовные жемчужины", time: matrix[11]?.[col] || '', assign: matrix[12]?.[col] || '' },
-                        { name: "Чтение Библии", time: matrix[13]?.[col] || '', assign: matrix[14]?.[col] || '' }
+                        { name: "Пункт № 1", time: matrix[8]?.[col] || '', assign: matrix[9]?.[col] || '' },
+                        { name: "Духовные жемчужины", time: matrix[10]?.[col] || '', assign: matrix[11]?.[col] || '' },
+                        { name: "Чтение Библии", time: matrix[12]?.[col] || '', assign: matrix[14]?.[col] || '' }
                     ];
 
                     // Оттачиваем навыки служения
                     weekObj.skills = [];
-                    const ministryRows = [16, 19, 22, 25];
+                    const ministryRows = [15, 18, 21, 24];
                     ministryRows.forEach(rIdx => {
                         const taskName = matrix[rIdx]?.[col] || '';
                         const actor = matrix[rIdx+1]?.[col] || '';
@@ -461,12 +479,12 @@
 
                     // Христианская жизнь
                     weekObj.living = {
-                        song2: matrix[30]?.[col] || '',
-                        song2Time: matrix[29]?.[col] || '',
+                        song2: matrix[29]?.[col] || '',
+                        song2Time: matrix[28]?.[col] || '',
                         items: []
                     };
 
-                    [32, 35].forEach(rIdx => {
+                    [31, 34].forEach(rIdx => {
                         const pName = matrix[rIdx]?.[col] || '';
                         const pActor = matrix[rIdx+1]?.[col] || '';
                         const pTime = matrix[rIdx-1]?.[col] || '';
@@ -479,7 +497,7 @@
                         }
                     });
 
-                    // Чёткое ветвление логики строк согласно ТЗ
+                    // Ветвление логики Обычная / Визит РС
                     if (weekObj.type === 'rs') {
                         weekObj.living.rsSpeech = {
                             time: matrix[44]?.[col] || '',
@@ -493,14 +511,14 @@
                         };
                     } else {
                         weekObj.living.bibleStudy = {
-                            time: matrix[38]?.[col] || '',
-                            assign: matrix[39]?.[col] || '',
-                            reader: matrix[40]?.[col] || ''
+                            time: matrix[37]?.[col] || '',
+                            assign: matrix[38]?.[col] || '',
+                            reader: matrix[39]?.[col] || ''
                         };
                         weekObj.footer = {
-                            song3Time: matrix[41]?.[col] || '',
-                            song3: matrix[42]?.[col] || '',
-                            prayer2: matrix[43]?.[col] || ''
+                            song3Time: matrix[40]?.[col] || '',
+                            song3: matrix[41]?.[col] || '',
+                            prayer2: matrix[42]?.[col] || ''
                         };
                     }
 
@@ -531,7 +549,7 @@
 
             currentWeeks.forEach(week => {
                 const card = document.createElement('div');
-                card.className = `week-card`;
+                card.className = `week-card ${week.type === 'rs' ? 'type-rs' : ''}`;
 
                 if (week.type === 'congress') {
                     card.innerHTML = `
@@ -603,10 +621,10 @@
                                 <div class="row-item"><div class="col-left">Песня</div><div class="col-time"></div><div class="col-right">${s1Text}</div></div>
                                 <div class="row-item"><div class="col-left">Вступ. молитва</div><div class="col-time"></div><div class="col-right">${week.prayer1}</div></div>
                                 
-                                <div class="section-title">💎 Сокровища из Слова</div>
+                                <div class="section-title">💎 Сокровища из Слова Бога</div>
                                 ${treasuresHTML}
 
-                                <div class="section-title">📢 Оттачиваем навыки</div>
+                                <div class="section-title">📢 Оттачиваем навыки служения</div>
                                 <div class="skills-container">${skillsHTML}</div>
 
                                 <div class="section-title">🌳 Христианская жизнь</div>
