@@ -177,20 +177,21 @@
         }
 
         .row-item {
-            display: grid;
-            grid-template-columns: 140px 38px 1fr; 
-            align-items: start;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             line-height: 1.35;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
         }
 
         .col-left {
             font-weight: bold;
             color: #333333;
-            padding-right: 2px;
+            flex: 1;
             white-space: nowrap; 
             overflow: hidden;
             text-overflow: ellipsis;
+            padding-right: 5px;
         }
 
         .row-item.role-partner .col-left {
@@ -203,7 +204,8 @@
             color: #555555;
             font-style: italic;
             text-align: right;
-            padding-right: 5px;
+            min-width: 42px;
+            padding-right: 8px;
             font-size: 7.5pt;
         }
 
@@ -211,6 +213,7 @@
             font-weight: bold;
             color: var(--text-blue);
             text-align: right;
+            max-width: 55%;
             word-wrap: break-word;
             white-space: normal; 
         }
@@ -351,7 +354,6 @@
             return r;
         }
 
-        // Преобразование даты "04.08.2026" в формат "ВТОРНИК, 4 августа 2026 г."
         function formatReadableDate(rawDateStr) {
             if (!rawDateStr) return '';
             const parts = rawDateStr.split('.');
@@ -372,7 +374,6 @@
             });
 
             let result = formatter.format(dateObj);
-            // Убираем лишнее слово "день недели" в начале и делаем заглавными буквами до запятой
             result = result.replace(' г.', ' г');
             const commaIndex = result.indexOf(',');
             if (commaIndex !== -1) {
@@ -383,7 +384,6 @@
             return result.toUpperCase();
         }
 
-        // Функция форматирования названий пунктов в "Христианской жизни"
         function formatLivingItemName(rawName) {
             if (!rawName) return '';
             let cleaned = rawName.trim();
@@ -406,11 +406,11 @@
                 let loadedWeeks = [];
                 const columnsCount = matrix[2] ? matrix[2].length : 0;
 
+                // Начинаем проверять колонки таблицы
                 for (let col = 1; col < columnsCount; col++) {
-                    const isSelected = matrix[0]?.[col];
-                    if (!isSelected || isSelected.toString().toUpperCase() !== 'TRUE') continue;
-
                     const dateStr = (matrix[2]?.[col] || '').trim();
+                    
+                    // Если даты в 3 строке вообще нет — значит данные в этой колонке закончились
                     if (!dateStr) continue;
 
                     const prettyDate = formatReadableDate(dateStr);
@@ -430,7 +430,7 @@
                     }
 
                     weekObj.chairman = matrix[4]?.[col] || '';
-                    weekObj.song1Time = matrix[3]?.[col] ? `${matrix[3]?.[col]}` : '18:30';
+                    weekObj.song1Time = matrix[3]?.[col] ? `${matrix[3]?.[col]}` : '';
                     weekObj.song1 = matrix[5]?.[col] || '';
                     weekObj.prayer1 = matrix[6]?.[col] || '';
 
@@ -449,7 +449,7 @@
                         const actor = matrix[rIdx+1]?.[col] || '';
                         const partner = matrix[rIdx+2]?.[col] || '';
                         
-                        if (taskName && !taskName.includes('Пустое задание') && actor) {
+                        if (taskName && !taskName.includes('Пустое задание')) {
                             weekObj.skills.push({ name: taskName, assign: actor, isPartner: false });
                             if (partner) {
                                 weekObj.skills.push({ name: "Партнер", assign: partner, isPartner: true });
@@ -547,7 +547,7 @@
                     let skillsHTML = '';
                     for (let i = 0; i < 8; i++) {
                         const s = week.skills[i];
-                        if (s) {
+                        if (s && s.name) {
                             skillsHTML += `<div class="row-item ${s.isPartner ? 'role-partner' : ''}"><div class="col-left">${s.name}</div><div class="col-time"></div><div class="col-right">${s.assign}</div></div>`;
                         } else {
                             skillsHTML += `<div class="row-item"><div class="col-left">&nbsp;</div><div class="col-time"></div><div class="col-right">&nbsp;</div></div>`;
@@ -581,7 +581,6 @@
                         `;
                     }
 
-                    // Оформление номеров песен в красивый вид
                     const s1Text = week.song1 ? `№ ${week.song1}` : '';
                     const s2Text = week.living.song2 ? `№ ${week.living.song2}` : '';
                     const s3Text = week.footer.song3 ? `№ ${week.footer.song3}` : '';
