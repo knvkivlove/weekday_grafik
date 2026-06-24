@@ -36,7 +36,7 @@
             flex-direction: column;
             align-items: center;
             padding: 0 5px;
-            overflow-x: hidden; /* Защита от горизонтальной прокрутки всей страницы */
+            overflow-x: hidden;
         }
 
         .controls-panel {
@@ -94,11 +94,10 @@
             text-transform: uppercase;
         }
 
-        /* Контейнер для центрирования масштабируемого листа на мобильных */
         .sheet-container {
             width: 100%;
-            display: flex;
-            justify-content: center;
+            display: block; /* Изменено для точного расчета позиции трансформации */
+            position: relative;
         }
 
         .a4-sheet {
@@ -106,9 +105,10 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            transform-origin: top left; /* Исправлен баг смещения: привязка к левому верхнему углу */
+            transform-origin: 0 0; /* Жесткая привязка к левому верхнему углу для избежания обрезки */
             transition: transform 0.1s ease-out;
             flex-shrink: 0;
+            margin: 0 auto;
         }
 
         .sheet-landscape {
@@ -213,7 +213,9 @@
             padding-right: 5px;
         }
 
-        .row-item.role-partner .col-left {
+        /* Стиль для учебных заданий (Оттачиваем навыки + Чтение Библии) */
+        .row-item.role-partner .col-left,
+        .row-item.role-student .col-right {
             color: var(--muted-gray);
             font-weight: normal;
         }
@@ -279,7 +281,6 @@
             text-align: center;
         }
 
-        /* Название речи РС: Увеличено на 1pt, без подчеркивания, КАПСОМ, разрешен перенос на 2 строки */
         .rs-speech-title {
             font-size: 9.5pt; 
             font-weight: bold;
@@ -291,6 +292,7 @@
             line-height: 1.3;
         }
 
+        /* Убрана пунктирная рамка у Конгресса, легкая плашка сохранена */
         .congress-container {
             display: flex;
             flex-grow: 1;
@@ -301,7 +303,7 @@
             padding: 10px;
             min-height: 200px; 
             text-align: center;
-            border: 1.5px dashed var(--rs-red);
+            border: none;
             border-radius: 4px;
             margin: auto 0;
         }
@@ -583,7 +585,14 @@
                     
                     let treasuresHTML = '';
                     week.treasures.forEach(t => {
-                        treasuresHTML += `<div class="row-item"><div class="col-left">${t.name}</div><div class="col-time">${t.time}</div><div class="col-right">${t.assign}</div></div>`;
+                        // Добавлен класс role-student для "Чтения Библии", чтобы ФИО стало серым
+                        const isBibleReading = t.name.includes("Чтение Библии");
+                        treasuresHTML += `
+                            <div class="row-item ${isBibleReading ? 'role-student' : ''}">
+                                <div class="col-left">${t.name}</div>
+                                <div class="col-time">${t.time}</div>
+                                <div class="col-right">${t.assign}</div>
+                            </div>`;
                     });
 
                     let skillsHTML = '';
@@ -760,6 +769,7 @@
             setTimeout(syncSkillsHeight, 50);
         }
 
+        // ПОЛНОСТЬЮ ОБНОВЛЕННАЯ ФУНКЦИЯ ДЛЯ ИСПРАВЛЕНИЯ ЗУМА И СДВИГА НА МОБИЛЬНЫХ
         function adjustMobileScale(currentMode) {
             const sheet = document.getElementById('a4Sheet');
             if (!sheet) return;
@@ -768,18 +778,23 @@
             const targetWidth = mode === '1x4' ? 1122 : 793;
             const targetHeight = mode === '1x4' ? 793 : 1122;
 
+            const screenWidth = window.innerWidth - 10;
+
             if (window.innerWidth < (targetWidth + 20)) {
-                const scale = (window.innerWidth - 10) / targetWidth; 
+                const scale = screenWidth / targetWidth; 
                 sheet.style.transform = `scale(${scale})`;
+                
+                // Компенсируем нижний отступ, который появляется из-за сжатия
                 sheet.style.marginBottom = `calc(${targetHeight}px * (${scale} - 1))`;
                 
-                // Исправление бага центрирования при загрузке: добавляем левый отступ, равный разнице сжатия
-                const totalScrolledSpace = (window.innerWidth - (targetWidth * scale)) / 2;
-                sheet.style.marginLeft = '0px'; 
+                // РАССЧИТЫВАЕМ ТОЧНЫЙ ОТСТУП ДЛЯ ИДЕАЛЬНОГО ЦЕНТРИРОВАНИЯ БЕЗ СДВИГОВ И ОБРЕЗОК
+                const leftOffset = (window.innerWidth - (targetWidth * scale)) / 2;
+                sheet.style.marginLeft = `${leftOffset}px`; 
             } else {
                 sheet.style.transform = 'none';
                 sheet.style.marginBottom = '0px';
-                sheet.style.marginLeft = '0px';
+                sheet.style.marginLeft = 'auto';
+                sheet.style.marginRight = 'auto';
             }
         }
 
