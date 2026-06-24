@@ -11,7 +11,7 @@
             --main-blue: #0066b3; 
             --text-dark: #000000;
             --text-blue: #0066b3;
-            --muted-gray: #383a59; /* Сделали более темно-серым для лучшей читаемости */
+            --muted-gray: #444444; /* Сделали более темным и контрастным */
             --rs-red: #d32f2f;   
             --pastel-blue: #e6f2fa; 
             --pastel-red: #fdf2f2;  
@@ -213,12 +213,6 @@
             padding-right: 5px;
         }
 
-        .row-item.role-partner .col-left,
-        .row-item.role-student .col-right {
-            color: var(--muted-gray);
-            font-weight: normal;
-        }
-
         .col-time {
             font-weight: normal;
             color: #555555;
@@ -238,11 +232,15 @@
             white-space: normal; 
         }
 
+        /* Принудительный цвет для учебных ассистентов и чтения Библии */
+        .row-item.role-partner .col-left,
+        .row-item.role-student .col-right,
         .skills-container .col-right {
-            color: var(--muted-gray);
+            color: var(--muted-gray) !important;
+            font-weight: normal;
         }
 
-        /* УВЕЛИЧЕНИЕ ФИО НА 2 ПУНКТА В РЕЖИМЕ 2х2 (Книжный А4) */
+        /* Увеличение ВСЕХ ФИО на 2 пункта только в режиме 2х2 */
         .mode-2x2 .col-right {
             font-size: 10pt;
         }
