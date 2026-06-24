@@ -156,6 +156,7 @@
             font-size: 9.5pt;
             font-weight: bold;
             color: var(--text-blue);
+            text-transform: uppercase;
         }
         .status-rs .week-date, .status-congress .week-date {
             color: var(--rs-red);
@@ -350,6 +351,51 @@
             return r;
         }
 
+        // Преобразование даты "04.08.2026" в формат "ВТОРНИК, 4 августа 2026 г."
+        function formatReadableDate(rawDateStr) {
+            if (!rawDateStr) return '';
+            const parts = rawDateStr.split('.');
+            if (parts.length !== 3) return rawDateStr; 
+            
+            const day = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const year = parseInt(parts[2], 10);
+            
+            const dateObj = new Date(year, month, day);
+            if (isNaN(dateObj.getTime())) return rawDateStr;
+
+            const formatter = new Intl.DateTimeFormat('ru-RU', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            let result = formatter.format(dateObj);
+            // Убираем лишнее слово "день недели" в начале и делаем заглавными буквами до запятой
+            result = result.replace(' г.', ' г');
+            const commaIndex = result.indexOf(',');
+            if (commaIndex !== -1) {
+                const weekday = result.substring(0, commaIndex).toUpperCase();
+                const rest = result.substring(commaIndex);
+                return weekday + rest + '.';
+            }
+            return result.toUpperCase();
+        }
+
+        // Функция форматирования названий пунктов в "Христианской жизни"
+        function formatLivingItemName(rawName) {
+            if (!rawName) return '';
+            let cleaned = rawName.trim();
+            if (cleaned.startsWith('№') || cleaned.startsWith('#')) {
+                return 'Пункт ' + cleaned;
+            }
+            if (/^\d/.test(cleaned)) {
+                return 'Пункт № ' + cleaned;
+            }
+            return cleaned;
+        }
+
         async function loadScheduleFromGoogle() {
             try {
                 const response = await fetch(`${CSV_URL}&nocache=${new Date().getTime()}`);
@@ -358,17 +404,19 @@
                 const matrix = parseCSV(csvText);
 
                 let loadedWeeks = [];
-                const columnsCount = matrix[1] ? matrix[1].length : 0;
+                const columnsCount = matrix[2] ? matrix[2].length : 0;
 
                 for (let col = 1; col < columnsCount; col++) {
                     const isSelected = matrix[0]?.[col];
                     if (!isSelected || isSelected.toString().toUpperCase() !== 'TRUE') continue;
 
-                    const weekType = (matrix[1]?.[col] || '').trim();
                     const dateStr = (matrix[2]?.[col] || '').trim();
                     if (!dateStr) continue;
 
-                    let weekObj = { date: dateStr, type: 'normal' };
+                    const prettyDate = formatReadableDate(dateStr);
+                    const weekType = (matrix[1]?.[col] || '').trim();
+                    
+                    let weekObj = { date: prettyDate, type: 'normal' };
 
                     if (weekType.includes('Конгресс')) {
                         weekObj.type = 'congress';
@@ -420,8 +468,12 @@
                         const pName = matrix[rIdx]?.[col] || '';
                         const pActor = matrix[rIdx+1]?.[col] || '';
                         const pTime = matrix[rIdx-1]?.[col] || '';
-                        if (pName && !pName.includes('Пустой пункт') && pActor) {
-                            weekObj.living.items.push({ name: pName, time: pTime, assign: pActor });
+                        if (pName && !pName.includes('Пустой пункт')) {
+                            weekObj.living.items.push({ 
+                                name: formatLivingItemName(pName), 
+                                time: pTime, 
+                                assign: pActor 
+                            });
                         }
                     });
 
@@ -517,7 +569,7 @@
                         specialBlockHTML = `
                             <div class="special-footer-block">
                                 <div class="row-item"><div class="col-left">Выступление РС</div><div class="col-time"></div><div class="col-right">${week.living.rsSpeech.assign}</div></div>
-                                <div class="rs-speech-title">"${week.living.rsSpeech.title}"</div>
+                                <div class="rs-speech-title">${week.living.rsSpeech.title ? `"${week.living.rsSpeech.title}"` : '&nbsp;'}</div>
                             </div>
                         `;
                     } else {
@@ -529,12 +581,17 @@
                         `;
                     }
 
+                    // Оформление номеров песен в красивый вид
+                    const s1Text = week.song1 ? `№ ${week.song1}` : '';
+                    const s2Text = week.living.song2 ? `№ ${week.living.song2}` : '';
+                    const s3Text = week.footer.song3 ? `№ ${week.footer.song3}` : '';
+
                     card.innerHTML = `
                         <div class="week-header"><span class="week-date">${week.date}</span></div>
                         <div class="week-body">
                             <div class="normal-program-wrapper">
                                 <div class="row-item"><div class="col-left">Председатель</div><div class="col-time">${week.song1Time}</div><div class="col-right">${week.chairman}</div></div>
-                                <div class="row-item"><div class="col-left">Песня</div><div class="col-time"></div><div class="col-right">№ ${week.song1}</div></div>
+                                <div class="row-item"><div class="col-left">Песня</div><div class="col-time"></div><div class="col-right">${s1Text}</div></div>
                                 <div class="row-item"><div class="col-left">Вступ. молитва</div><div class="col-time"></div><div class="col-right">${week.prayer1}</div></div>
                                 
                                 <div class="section-title">💎 Сокровища из Слова</div>
@@ -545,13 +602,13 @@
 
                                 <div class="section-title">🌳 Христианская жизнь</div>
                                 <div class="cl-container">
-                                    <div class="row-item"><div class="col-left">Песня</div><div class="col-time">${week.living.song2Time}</div><div class="col-right">№ ${week.living.song2}</div></div>
+                                    <div class="row-item"><div class="col-left">Песня</div><div class="col-time">${week.living.song2Time}</div><div class="col-right">${s2Text}</div></div>
                                     ${livingHTML}
                                     ${specialBlockHTML}
                                 </div>
 
                                 <div class="card-footer-meeting">
-                                    <div class="row-item"><div class="col-left">Песня</div><div class="col-time">${week.footer.song3Time}</div><div class="col-right">№ ${week.footer.song3}</div></div>
+                                    <div class="row-item"><div class="col-left">Песня</div><div class="col-time">${week.footer.song3Time}</div><div class="col-right">${s3Text}</div></div>
                                     <div class="row-item"><div class="col-left">Закл. молитва</div><div class="col-time"></div><div class="col-right">${week.footer.prayer2}</div></div>
                                 </div>
                             </div>
