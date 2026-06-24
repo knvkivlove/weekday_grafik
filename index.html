@@ -137,9 +137,6 @@
             background-color: var(--card-bg);
             height: 100%;
         }
-        .week-card.status-rs, .week-card.status-congress {
-            border-color: var(--rs-red);
-        }
 
         .week-header {
             background-color: var(--pastel-blue);
@@ -147,18 +144,11 @@
             border-bottom: 1.5px solid var(--main-blue);
             text-align: center;
         }
-        .status-rs .week-header, .status-congress .week-header {
-            background-color: var(--pastel-red);
-            border-bottom-color: var(--rs-red);
-        }
 
         .week-date {
             font-size: 9.5pt;
             font-weight: bold;
             color: var(--text-blue);
-        }
-        .status-rs .week-date, .status-congress .week-date {
-            color: var(--rs-red);
         }
 
         .week-body {
@@ -175,21 +165,21 @@
             height: 100%;
         }
 
+        /* Трёхколоночная структура строки с выравниванием по линии */
         .row-item {
             display: flex;
-            justify-content: space-between;
             align-items: flex-start;
             line-height: 1.35;
             margin-bottom: 3px;
+            width: 100%;
         }
 
         .col-left {
             font-weight: bold;
             color: #333333;
-            flex: 1;
-            white-space: nowrap; 
-            overflow: hidden;
-            text-overflow: ellipsis;
+            width: 45%;            /* Фиксированная ширина левой колонки */
+            white-space: normal; 
+            word-wrap: break-word;
             padding-right: 5px;
         }
 
@@ -202,23 +192,19 @@
             font-weight: bold;
             color: #555555;
             font-style: italic;
-            text-align: right;
-            min-width: 42px;
-            padding-right: 8px;
+            text-align: center;
+            width: 13%;            /* Фиксированная ширина колонки времени */
             font-size: 7.5pt;
+            padding: 0 2px;
         }
 
         .col-right {
             font-weight: bold;
             color: var(--text-blue);
             text-align: right;
-            max-width: 55%;
+            width: 42%;            /* Фиксированная ширина правой колонки */
             word-wrap: break-word;
             white-space: normal; 
-        }
-
-        .status-rs .col-right {
-            color: var(--rs-red);
         }
 
         .skills-container .col-right {
@@ -248,18 +234,23 @@
             border-radius: 4px;
             background-color: var(--pastel-blue);
         }
-        .status-rs .special-footer-block {
+
+        /* Специфичное выделение только для названия речи в Визите РС */
+        .rs-speech-container {
+            margin-top: 4px;
+            margin-bottom: 2px;
+            padding: 4px;
+            border: 1px solid var(--rs-red);
+            border-radius: 4px;
             background-color: var(--pastel-red);
-            border: 1px dashed var(--rs-red);
+            text-align: center;
         }
 
         .rs-speech-title {
-            font-size: 9.5pt;
+            font-size: 9pt;
             font-weight: bold;
             color: var(--rs-red);
-            text-align: center;
-            margin-top: 4px;
-            margin-bottom: 2px;
+            text-decoration: underline;
             text-transform: uppercase;
             line-height: 1.2;
         }
@@ -274,6 +265,8 @@
             padding: 10px;
             min-height: 250px; 
             text-align: center;
+            border: 1.5px solid var(--rs-red);
+            border-radius: 4px;
         }
         
         .congress-text {
@@ -378,7 +371,6 @@
             if (commaIndex !== -1) {
                 const weekday = result.substring(0, commaIndex).toUpperCase();
                 const rest = result.substring(commaIndex);
-                // Заменяем " г" на маленькую букву " г."
                 return weekday + rest.toLowerCase().replace(' г', ' г.');
             }
             return result;
@@ -406,7 +398,6 @@
                 let loadedWeeks = [];
                 const columnsCount = matrix[2] ? matrix[2].length : 0;
 
-                // 1. Ищем индекс первой колонки, где стоит галочка выбора (True)
                 let startColumnIndex = -1;
                 for (let col = 1; col < columnsCount; col++) {
                     const isSelected = matrix[0]?.[col];
@@ -416,12 +407,10 @@
                     }
                 }
 
-                // Если галочка не найдена вообще, берём по старинке с 1 колонки
                 if (startColumnIndex === -1) {
                     startColumnIndex = 1;
                 }
 
-                // 2. Обрабатываем колонки начиная ТОЛЬКО с найденной стартовой колонки
                 for (let col = startColumnIndex; col < columnsCount; col++) {
                     const dateStr = (matrix[2]?.[col] || '').trim();
                     if (!dateStr) continue;
@@ -431,7 +420,6 @@
                     
                     let weekObj = { date: prettyDate, type: 'normal' };
 
-                    // Проверка на Конгресс
                     if (weekType.includes('Конгресс') || weekType.includes('конгресс')) {
                         weekObj.type = 'congress';
                         weekObj.congressText = matrix[49]?.[col] || 'РАЙОННЫЙ КОНГРЕСС';
@@ -439,26 +427,25 @@
                         continue;
                     }
 
-                    // Проверка на Визит РС
                     if (weekType.includes('визит') || weekType.includes('Визит') || weekType.includes('РС')) {
                         weekObj.type = 'rs';
                     }
 
-                    weekObj.chairman = matrix[4]?.[col] || '';
-                    weekObj.song1Time = matrix[3]?.[col] ? `${matrix[3]?.[col]}` : '';
-                    weekObj.song1 = matrix[5]?.[col] || '';
-                    weekObj.prayer1 = matrix[6]?.[col] || '';
+                    weekObj.chairman = matrix[5]?.[col] || '';
+                    weekObj.song1Time = matrix[4]?.[col] ? `${matrix[4]?.[col]}` : '';
+                    weekObj.song1 = matrix[6]?.[col] || '';
+                    weekObj.prayer1 = matrix[7]?.[col] || '';
 
                     // Сокровища из Слова
                     weekObj.treasures = [
-                        { name: "Пункт № 1", time: matrix[8]?.[col] || '', assign: matrix[9]?.[col] || '' },
-                        { name: "Духовные жемчужины", time: matrix[10]?.[col] || '', assign: matrix[11]?.[col] || '' },
-                        { name: "Чтение Библии", time: matrix[12]?.[col] || '', assign: matrix[13]?.[col] || '' }
+                        { name: "Пункт № 1", time: matrix[9]?.[col] || '', assign: matrix[10]?.[col] || '' },
+                        { name: "Духовные жемчужины", time: matrix[11]?.[col] || '', assign: matrix[12]?.[col] || '' },
+                        { name: "Чтение Библии", time: matrix[13]?.[col] || '', assign: matrix[14]?.[col] || '' }
                     ];
 
                     // Оттачиваем навыки служения
                     weekObj.skills = [];
-                    const ministryRows = [15, 18, 21, 24];
+                    const ministryRows = [16, 19, 22, 25];
                     ministryRows.forEach(rIdx => {
                         const taskName = matrix[rIdx]?.[col] || '';
                         const actor = matrix[rIdx+1]?.[col] || '';
@@ -474,12 +461,12 @@
 
                     // Христианская жизнь
                     weekObj.living = {
-                        song2: matrix[29]?.[col] || '',
-                        song2Time: matrix[28]?.[col] || '',
+                        song2: matrix[30]?.[col] || '',
+                        song2Time: matrix[29]?.[col] || '',
                         items: []
                     };
 
-                    [31, 34].forEach(rIdx => {
+                    [32, 35].forEach(rIdx => {
                         const pName = matrix[rIdx]?.[col] || '';
                         const pActor = matrix[rIdx+1]?.[col] || '';
                         const pTime = matrix[rIdx-1]?.[col] || '';
@@ -492,27 +479,28 @@
                         }
                     });
 
-                    // Динамическое ветвление: Визит РС или Обычная программа
+                    // Чёткое ветвление логики строк согласно ТЗ
                     if (weekObj.type === 'rs') {
                         weekObj.living.rsSpeech = {
+                            time: matrix[44]?.[col] || '',
                             assign: matrix[45]?.[col] || '',
                             title: matrix[46]?.[col] || ''
                         };
                         weekObj.footer = {
-                            song3Time: matrix[44]?.[col] || '',
+                            song3Time: '',
                             song3: matrix[47]?.[col] || '',
                             prayer2: matrix[48]?.[col] || ''
                         };
                     } else {
                         weekObj.living.bibleStudy = {
-                            time: matrix[37]?.[col] || '',
-                            assign: matrix[38]?.[col] || '',
-                            reader: matrix[39]?.[col] || ''
+                            time: matrix[38]?.[col] || '',
+                            assign: matrix[39]?.[col] || '',
+                            reader: matrix[40]?.[col] || ''
                         };
                         weekObj.footer = {
-                            song3Time: matrix[40]?.[col] || '',
-                            song3: matrix[41]?.[col] || '',
-                            prayer2: matrix[42]?.[col] || ''
+                            song3Time: matrix[41]?.[col] || '',
+                            song3: matrix[42]?.[col] || '',
+                            prayer2: matrix[43]?.[col] || ''
                         };
                     }
 
@@ -543,7 +531,7 @@
 
             currentWeeks.forEach(week => {
                 const card = document.createElement('div');
-                card.className = `week-card ${week.type === 'rs' ? 'status-rs' : week.type === 'congress' ? 'status-congress' : ''}`;
+                card.className = `week-card`;
 
                 if (week.type === 'congress') {
                     card.innerHTML = `
@@ -584,8 +572,14 @@
                     if (week.type === 'rs') {
                         specialBlockHTML = `
                             <div class="special-footer-block">
-                                <div class="row-item"><div class="col-left">Выступление РС</div><div class="col-time"></div><div class="col-right">${week.living.rsSpeech.assign}</div></div>
-                                <div class="rs-speech-title">${week.living.rsSpeech.title ? `"${week.living.rsSpeech.title}"` : '&nbsp;'}</div>
+                                <div class="row-item">
+                                    <div class="col-left">Выступление РС</div>
+                                    <div class="col-time">${week.living.rsSpeech.time}</div>
+                                    <div class="col-right">${week.living.rsSpeech.assign}</div>
+                                </div>
+                                <div class="rs-speech-container">
+                                    <div class="rs-speech-title">${week.living.rsSpeech.title ? `"${week.living.rsSpeech.title}"` : '&nbsp;'}</div>
+                                </div>
                             </div>
                         `;
                     } else {
@@ -634,7 +628,6 @@
             });
 
             updateNavigationButtons();
-            // Выравниваем масштаб мобилки сразу после генерации карточек
             adjustMobileScale(currentLayoutMode);
             setTimeout(syncSkillsHeight, 20);
         }
