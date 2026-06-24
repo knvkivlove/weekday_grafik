@@ -2,198 +2,329 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Расписание будних дней</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Расписание буднего дня</title>
     <style>
-        * {
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --main-blue: #0066b3; 
+            --text-dark: #000000;
+            --text-blue: #0066b3;
+            --muted-gray: #777777; 
+            --rs-red: #d32f2f;   
+            --pastel-blue: #e6f2fa; 
+            --pastel-red: #fdf2f2;  
+            --border-gray: #cccccc;
+        }
+
+        *, *::before, *::after {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            background-color: #f4f6f9;
-            padding: 30px 20px;
-            color: #333;
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 10px 0;
         }
 
-        .header-title {
-            text-align: center;
-            text-transform: uppercase;
-            font-size: 24px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin-bottom: 25px;
-            color: #1a1a1a;
-        }
-
-        .schedule-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-            padding: 15px;
+        .page-wrapper {
+            width: 100%;
             display: flex;
             flex-direction: column;
-            border-top: 6px solid #0056b3;
-        }
-
-        .card.normal-week { border-top-color: #0056b3; }
-        .card.co-week { border-top-color: #c82333; }
-        .card.congress-week { border-top-color: #ffc107; }
-
-        .card-header {
-            text-align: center;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .card-date {
-            font-size: 18px;
-            font-weight: bold;
-            color: #111;
-        }
-
-        .card-type {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-            margin-top: 3px;
-            color: #666;
-        }
-
-        .co-week .card-type { color: #c82333; }
-        .congress-week .card-type { color: #b58100; }
-
-        .section-title {
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-            background: #f0f4f8;
-            padding: 4px 8px;
-            margin: 10px 0 6px 0;
-            border-radius: 4px;
-            display: flex;
             align-items: center;
-            gap: 5px;
-            color: #444;
+            padding: 0 5px;
         }
 
-        .co-week .section-title { background: #fde8e8; color: #8a1f1f; }
+        .controls-panel {
+            width: 100%;
+            max-width: 297mm;
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        @media (min-width: 600px) {
+            .controls-panel {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn {
+            background-color: var(--main-blue);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 10pt;
+            cursor: pointer;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+        .btn-secondary { background-color: #555555; }
+        .btn-navigation { background-color: #2e7d32; } 
+        .btn-danger { background-color: var(--rs-red); }
+
+        .btn.disabled, .btn:disabled {
+            background-color: #cccccc !important;
+            color: #888888 !important;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .main-schedule-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #333333;
+            text-align: center;
+            margin: 5px 0 8px 0;
+            text-transform: uppercase;
+        }
+
+        .a4-sheet {
+            background-color: var(--card-bg);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            transform-origin: top center;
+            transition: transform 0.1s ease-out;
+        }
+
+        .sheet-landscape {
+            width: 297mm;
+            height: 210mm;
+            padding: 6mm 8mm;
+        }
+        .sheet-portrait {
+            width: 210mm;
+            height: 297mm;
+            padding: 8mm;
+        }
+
+        .grid-container {
+            display: grid;
+            align-items: stretch;
+        }
+
+        .mode-1x4 {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3mm;
+        }
+        
+        .mode-2x2 {
+            grid-template-columns: 1fr 1fr;
+            gap: 5mm;
+        }
+
+        .week-card {
+            border: 1.5px solid var(--main-blue);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--card-bg);
+            height: 100%;
+        }
+        .week-card.status-rs, .week-card.status-congress {
+            border-color: var(--rs-red);
+        }
+
+        .week-header {
+            background-color: var(--pastel-blue);
+            padding: 5px;
+            border-bottom: 1.5px solid var(--main-blue);
+            text-align: center;
+        }
+        .status-rs .week-header, .status-congress .week-header {
+            background-color: var(--pastel-red);
+            border-bottom-color: var(--rs-red);
+        }
+
+        .week-date {
+            font-size: 9.5pt;
+            font-weight: bold;
+            color: var(--text-blue);
+        }
+        .status-rs .week-date, .status-congress .week-date {
+            color: var(--rs-red);
+        }
+
+        .week-body {
+            padding: 4px 6px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            font-size: 8pt;
+        }
+
+        .normal-program-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
 
         .row-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            font-size: 13px;
-            margin-bottom: 5px;
-            line-height: 1.4;
+            display: grid;
+            grid-template-columns: 140px 38px 1fr; 
+            align-items: start;
+            line-height: 1.35;
+            margin-bottom: 2px;
         }
 
-        .item-label {
-            color: #555;
-            font-weight: 500;
-            flex-shrink: 0;
-            margin-right: 8px;
+        .col-left {
+            font-weight: bold;
+            color: #333333;
+            padding-right: 2px;
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .item-time {
-            color: #888;
-            font-style: italic;
-            font-size: 11px;
-            margin-right: 5px;
-        }
-
-        .item-value {
-            font-weight: 600;
-            color: #0056b3;
-            text-align: right;
-            word-break: break-word;
-        }
-
-        .co-week .item-value { color: #c82333; }
-
-        .partner-label {
-            font-size: 11px;
-            color: #777;
+        .row-item.role-partner .col-left {
+            color: var(--muted-gray);
             font-weight: normal;
         }
 
-        .congress-body {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 40px 10px;
+        .col-time {
+            font-weight: bold;
+            color: #555555;
+            font-style: italic;
+            text-align: right;
+            padding-right: 5px;
+            font-size: 7.5pt;
         }
 
-        .congress-text {
-            font-size: 22px;
+        .col-right {
             font-weight: bold;
-            color: #c82333;
+            color: var(--text-blue);
+            text-align: right;
+            word-wrap: break-word;
+            white-space: normal; 
+        }
+
+        .status-rs .col-right {
+            color: var(--rs-red);
+        }
+
+        .skills-container .col-right {
+            color: var(--muted-gray);
+        }
+
+        .section-title {
+            font-size: 7.5pt;
+            font-weight: bold;
+            color: #444444;
+            text-transform: uppercase;
+            margin-top: 5px; 
+            margin-bottom: 3px;
+            border-bottom: 1px solid var(--border-gray);
+            padding-bottom: 1px;
+        }
+
+        .skills-container, .cl-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .special-footer-block {
+            margin-top: 2px;
+            margin-bottom: 2px;
+            padding: 3px;
+            border-radius: 4px;
+            background-color: var(--pastel-blue);
+        }
+        .status-rs .special-footer-block {
+            background-color: var(--pastel-red);
+            border: 1px dashed var(--rs-red);
+        }
+
+        .rs-speech-title {
+            font-size: 9.5pt;
+            font-weight: bold;
+            color: var(--rs-red);
+            text-align: center;
+            margin-top: 4px;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            line-height: 1.2;
+        }
+
+        .congress-container {
+            display: flex;
+            flex-grow: 1;
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;     
+            background-color: var(--pastel-red);
+            padding: 10px;
+            min-height: 250px; 
+            text-align: center;
+        }
+        
+        .congress-text {
+            font-size: 14pt;
+            font-weight: 900;
+            color: var(--rs-red);
             text-transform: uppercase;
             letter-spacing: 1px;
-            line-height: 1.3;
         }
 
-        .co-speech-block {
-            border: 1px dashed #c82333;
-            background: #fff5f5;
-            padding: 8px;
-            border-radius: 6px;
-            margin-top: 8px;
-            text-align: center;
-        }
-
-        .co-speech-title {
-            font-size: 12px;
-            font-weight: bold;
-            color: #c82333;
-            text-transform: uppercase;
-            margin-bottom: 3px;
-        }
-
-        .co-speech-name {
-            font-size: 14px;
-            font-weight: bold;
-            color: #111;
-        }
-
-        .co-speech-theme {
-            font-size: 13px;
-            font-style: italic;
-            color: #444;
-            margin-top: 2px;
+        .card-footer-meeting {
+            margin-top: auto;
+            border-top: 1px dashed var(--border-gray);
+            padding-top: 3px;
         }
 
         .loading, .error {
             text-align: center;
-            font-size: 18px;
-            margin-top: 50px;
-            font-weight: 500;
+            font-size: 14pt;
+            font-weight: bold;
+            padding: 40px;
+            color: #555;
         }
-        .error { color: #c82333; }
     </style>
 </head>
 <body>
 
-    <div class="header-title">Наша христианская жизнь и служение</div>
-    <div id="main-container" class="loading">Загрузка актуального расписания...</div>
+    <div class="page-wrapper">
+        <div class="controls-panel">
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="changeMode('1x4')">📋 1х4 (Альбомный)</button>
+                <button class="btn btn-secondary" onclick="changeMode('2x2')">🔲 2х2 (Книжный)</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-navigation" id="btnPrev" onclick="navigateWeeks(-1)">◀ Предыдущие 4 недели</button>
+                <button class="btn btn-navigation" id="btnNext" onclick="navigateWeeks(1)">Следующие 4 недели ▶</button>
+            </div>
+            <button class="btn btn-danger" onclick="window.print()">🖨️ Печать / PDF</button>
+        </div>
+
+        <div class="a4-sheet sheet-portrait" id="a4Sheet">
+            <div class="main-schedule-title">Наша христианская жизнь и служение</div>
+            <div class="grid-container mode-2x2" id="gridContainer">
+                <div class="loading" id="loading-state">Загрузка данных из Google Таблицы...</div>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Твоя опубликованная CSV-ссылка
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbSI88tn6rr0HPWwZsXYKmoOk-Xj8vJ3FLA9_xemsQVgh7OXIYTflkKed0Z4bEgcqXd_BdPvfn7N_a/pub?output=csv';
+
+        let scheduleData = [];
+        let currentPage = 0; 
+        let currentLayoutMode = '2x2';
 
         function parseCSV(text) {
             let p = '', r = [];
@@ -219,215 +350,339 @@
             return r;
         }
 
-        async function loadSchedule() {
+        async function loadScheduleFromGoogle() {
             try {
-                // Избавляемся от кэширования со стороны Google при каждом обновлении
                 const response = await fetch(`${CSV_URL}&nocache=${new Date().getTime()}`);
-                if (!response.ok) throw new Error('Ошибка сети');
+                if (!response.ok) throw new Error('Ошибка при запросе данных');
                 const csvText = await response.text();
                 const matrix = parseCSV(csvText);
 
-                const container = document.getElementById('main-container');
-                container.innerHTML = ''; 
-                container.className = 'schedule-container';
-
+                let loadedWeeks = [];
                 const columnsCount = matrix[1] ? matrix[1].length : 0;
 
                 for (let col = 1; col < columnsCount; col++) {
                     const isSelected = matrix[0]?.[col];
-                    if (!isSelected || isSelected.toString().toUpperCase() !== 'TRUE') {
-                        continue; 
-                    }
+                    if (!isSelected || isSelected.toString().toUpperCase() !== 'TRUE') continue;
 
                     const weekType = (matrix[1]?.[col] || '').trim();
                     const dateStr = (matrix[2]?.[col] || '').trim();
                     if (!dateStr) continue;
 
-                    const card = document.createElement('div');
-                    
-                    // Блок Конгресса (строки 49-50)
+                    let weekObj = { date: dateStr, type: 'normal' };
+
                     if (weekType.includes('Конгресс')) {
-                        card.className = 'card congress-week';
-                        card.innerHTML = `
-                            <div class="card-header">
-                                <div class="card-date">${dateStr}</div>
-                                <div class="card-type">Районный конгресс</div>
-                            </div>
-                            <div class="congress-body">
-                                <div class="congress-text">${matrix[49]?.[col] || 'РАЙОННЫЙ КОНГРЕСС'}</div>
-                            </div>
-                        `;
-                        container.appendChild(card);
+                        weekObj.type = 'congress';
+                        weekObj.congressText = matrix[49]?.[col] || 'РАЙОННЫЙ КОНГРЕСС';
+                        loadedWeeks.push(weekObj);
                         continue;
                     }
 
-                    const isCO = weekType.includes('визит') || weekType.includes('Визит');
-                    card.className = isCO ? 'card co-week' : 'card normal-week';
+                    if (weekType.includes('визит') || weekType.includes('Визит')) {
+                        weekObj.type = 'rs';
+                    }
 
-                    const chairman = matrix[4]?.[col] || '';
-                    const startSongTime = matrix[3]?.[col] ? `(${matrix[3]?.[col]})` : '';
-                    const startSongNum = matrix[5]?.[col] || '';
-                    const openingPrayer = matrix[6]?.[col] || '';
+                    weekObj.chairman = matrix[4]?.[col] || '';
+                    weekObj.song1Time = matrix[3]?.[col] ? `${matrix[3]?.[col]}` : '18:30';
+                    weekObj.song1 = matrix[5]?.[col] || '';
+                    weekObj.prayer1 = matrix[6]?.[col] || '';
 
                     // Сокровища
-                    const treasuresTime1 = matrix[8]?.[col] ? `${matrix[8]?.[col]}` : '';
-                    const treasures1 = matrix[9]?.[col] || '';
-                    const treasuresTime2 = matrix[10]?.[col] ? `${matrix[10]?.[col]}` : '';
-                    const gems = matrix[11]?.[col] || '';
-                    const treasuresTime3 = matrix[12]?.[col] ? `${matrix[12]?.[col]}` : '';
-                    const bibleReading = matrix[13]?.[col] || '';
+                    weekObj.treasures = [
+                        { name: "Пункт № 1", time: matrix[8]?.[col] || '', assign: matrix[9]?.[col] || '' },
+                        { name: "Духовные жемчужины", time: matrix[10]?.[col] || '', assign: matrix[11]?.[col] || '' },
+                        { name: "Чтение Библии", time: matrix[12]?.[col] || '', assign: matrix[13]?.[col] || '' }
+                    ];
 
-                    // Оттачиваем навыки
-                    let ministryHTML = '';
+                    // Навыки
+                    weekObj.skills = [];
                     const ministryRows = [15, 18, 21, 24];
                     ministryRows.forEach(rIdx => {
                         const taskName = matrix[rIdx]?.[col] || '';
                         const actor = matrix[rIdx+1]?.[col] || '';
                         const partner = matrix[rIdx+2]?.[col] || '';
-                        const timeVal = matrix[rIdx-1]?.[col] ? `${matrix[rIdx-1]?.[col]}` : '';
-
+                        
                         if (taskName && !taskName.includes('Пустое задание') && actor) {
-                            let partnerHTML = partner ? ` <span class="partner-label">/ Партнёр: ${partner}</span>` : '';
-                            ministryHTML += `
-                                <div class="row-item">
-                                    <span class="item-label">${taskName}</span>
-                                    <span class="item-value"><span class="item-time">${timeVal}</span>${actor}${partnerHTML}</span>
-                                </div>
-                            `;
+                            weekObj.skills.push({ name: taskName, assign: actor, isPartner: false });
+                            if (partner) {
+                                weekObj.skills.push({ name: "Партнер", assign: partner, isPartner: true });
+                            }
                         }
                     });
 
                     // Христианская жизнь
-                    const clSongTime = matrix[28]?.[col] ? `${matrix[28]?.[col]}` : '';
-                    const clSongNum = matrix[29]?.[col] || '';
-                    
-                    let clItemsHTML = '';
+                    weekObj.living = {
+                        song2: matrix[29]?.[col] || '',
+                        song2Time: matrix[28]?.[col] || '',
+                        items: []
+                    };
+
                     [31, 34].forEach(rIdx => {
                         const pName = matrix[rIdx]?.[col] || '';
                         const pActor = matrix[rIdx+1]?.[col] || '';
-                        const pTime = matrix[rIdx-1]?.[col] ? `${matrix[rIdx-1]?.[col]}` : '';
+                        const pTime = matrix[rIdx-1]?.[col] || '';
                         if (pName && !pName.includes('Пустой пункт') && pActor) {
-                            clItemsHTML += `
-                                <div class="row-item">
-                                    <span class="item-label">${pName}</span>
-                                    <span class="item-value"><span class="item-time">${pTime}</span>${pActor}</span>
-                                </div>
-                            `;
+                            weekObj.living.items.push({ name: pName, time: pTime, assign: pActor });
                         }
                     });
 
-                    // Изучение Библии (строки 37-39)
-                    const cbsTime = matrix[37]?.[col] ? `${matrix[37]?.[col]}` : '';
-                    const cbsConductor = matrix[38]?.[col] || '';
-                    const cbsReader = matrix[39]?.[col] || '';
-                    if (cbsConductor) {
-                        clItemsHTML += `
-                            <div class="row-item">
-                                <span class="item-label">Изучение Библии</span>
-                                <span class="item-value"><span class="item-time">${cbsTime}</span>${cbsConductor}</span>
-                            </div>
-                        `;
-                        if (cbsReader) {
-                            clItemsHTML += `
-                                <div class="row-item" style="margin-top:-3px;">
-                                    <span class="item-label" style="font-size:11px; padding-left:10px;">Чтец</span>
-                                    <span class="item-value" style="font-size:12px;">${cbsReader}</span>
-                                </div>
-                            `;
-                        }
-                    }
-
-                    let footerHTML = '';
-                    if (isCO) {
-                        // Визит РС: 44-48
-                        const coTime = matrix[44]?.[col] ? `${matrix[44]?.[col]}` : '';
-                        const coSpeaker = matrix[45]?.[col] || '';
-                        const coTheme = matrix[46]?.[col] || '';
-                        const endSongNum = matrix[47]?.[col] || '';
-                        const endPrayer = matrix[48]?.[col] || '';
-
-                        footerHTML = `
-                            <div class="co-speech-block">
-                                <div class="co-speech-title">Выступление районного старейшины</div>
-                                <div class="co-speech-name"><span class="item-time">${coTime}</span>${coSpeaker}</div>
-                                <div class="co-speech-theme">${coTheme}</div>
-                            </div>
-                            <div class="row-item" style="margin-top: 8px;">
-                                <span class="item-label">Песня / Молитва</span>
-                                <span class="item-value">№ ${endSongNum} / ${endPrayer}</span>
-                            </div>
-                        `;
+                    if (weekObj.type === 'rs') {
+                        weekObj.living.rsSpeech = {
+                            assign: matrix[45]?.[col] || '',
+                            title: matrix[46]?.[col] || ''
+                        };
+                        weekObj.footer = {
+                            song3Time: matrix[44]?.[col] || '',
+                            song3: matrix[47]?.[col] || '',
+                            prayer2: matrix[48]?.[col] || ''
+                        };
                     } else {
-                        // Обычная неделя: 40-43
-                        const endSongTime = matrix[40]?.[col] ? `(${matrix[40]?.[col]})` : '';
-                        const endSongNum = matrix[41]?.[col] || '';
-                        const endPrayer = matrix[42]?.[col] || '';
-                        if (endSongNum || endPrayer) {
-                            footerHTML = `
-                                <div class="row-item" style="margin-top: 5px;">
-                                    <span class="item-label">Песня / Молитва</span>
-                                    <span class="item-value"><span class="item-time">${endSongTime}</span>№ ${endSongNum} / ${endPrayer}</span>
-                                </div>
-                            `;
+                        weekObj.living.bibleStudy = {
+                            time: matrix[37]?.[col] || '',
+                            assign: matrix[38]?.[col] || '',
+                            reader: matrix[39]?.[col] || ''
+                        };
+                        weekObj.footer = {
+                            song3Time: matrix[40]?.[col] || '',
+                            song3: matrix[41]?.[col] || '',
+                            prayer2: matrix[42]?.[col] || ''
                         }
                     }
 
-                    card.innerHTML = `
-                        <div class="card-header">
-                            <div class="card-date">${dateStr}</div>
-                            <div class="card-type">${weekType}</div>
-                        </div>
-
-                        <div class="row-item">
-                            <span class="item-label">Председатель</span>
-                            <span class="item-value">${chairman}</span>
-                        </div>
-                        <div class="row-item">
-                            <span class="item-label">Песня / Вступ. молитва</span>
-                            <span class="item-value"><span class="item-time">${startSongTime}</span>№ ${startSongNum} / ${openingPrayer}</span>
-                        </div>
-
-                        <div class="section-title">💎 Сокровища из Слова Бога</div>
-                        <div class="row-item">
-                            <span class="item-label">Пункт №1</span>
-                            <span class="item-value"><span class="item-time">${treasuresTime1}</span>${treasures1}</span>
-                        </div>
-                        <div class="row-item">
-                            <span class="item-label">Духовные жемчужины</span>
-                            <span class="item-value"><span class="item-time">${treasuresTime2}</span>${gems}</span>
-                        </div>
-                        <div class="row-item">
-                            <span class="item-label">Чтение Библии</span>
-                            <span class="item-value"><span class="item-time">${treasuresTime3}</span>${bibleReading}</span>
-                        </div>
-
-                        ${ministryHTML ? `<div class="section-title">🎤 Оттачиваем навыки служения</div>${ministryHTML}` : ''}
-
-                        <div class="section-title">🌳 Христианская жизнь</div>
-                        <div class="row-item">
-                            <span class="item-label">Песня</span>
-                            <span class="item-value"><span class="item-time">${clSongTime}</span>№ ${clSongNum}</span>
-                        </div>
-                        ${clItemsHTML}
-                        ${footerHTML}
-                    `;
-
-                    container.appendChild(card);
+                    loadedWeeks.push(weekObj);
                 }
 
-                if (container.children.length === 0) {
-                    container.innerHTML = '<div class="loading">Нет выбранных недель. Отметьте галочками "Выбор" в Google Таблице.</div>';
-                    container.className = '';
-                }
+                scheduleData = loadedWeeks;
+                renderSchedule();
 
-            } catch (e) {
-                console.error(e);
-                document.getElementById('main-container').innerHTML = '<div class="error">Ошибка загрузки расписания. Проверьте публикацию CSV.</div>';
-                document.getElementById('main-container').className = '';
+            } catch (err) {
+                console.error(err);
+                document.getElementById('gridContainer').innerHTML = '<div class="error">Ошибка импорта данных. Проверьте публикацию Google Таблицы.</div>';
             }
         }
 
-        window.addEventListener('DOMContentLoaded', loadSchedule);
+        function renderSchedule() {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = '';
+
+            if (scheduleData.length === 0) {
+                container.innerHTML = '<div class="loading">Нет выбранных недель. Отметьте их в Google Таблице.</div>';
+                return;
+            }
+
+            const startIndex = currentPage * 4;
+            const endIndex = startIndex + 4;
+            const currentWeeks = scheduleData.slice(startIndex, endIndex);
+
+            currentWeeks.forEach(week => {
+                const card = document.createElement('div');
+                card.className = `week-card ${week.type === 'rs' ? 'status-rs' : week.type === 'congress' ? 'status-congress' : ''}`;
+
+                if (week.type === 'congress') {
+                    card.innerHTML = `
+                        <div class="week-header"><span class="week-date">${week.date}</span></div>
+                        <div class="week-body">
+                            <div class="congress-container">
+                                <div class="congress-text">${week.congressText.replace(/\n/g, '<br>')}</div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    let treasuresHTML = '';
+                    week.treasures.forEach(t => {
+                        treasuresHTML += `<div class="row-item"><div class="col-left">${t.name}</div><div class="col-time">${t.time}</div><div class="col-right">${t.assign}</div></div>`;
+                    });
+
+                    let skillsHTML = '';
+                    for (let i = 0; i < 8; i++) {
+                        const s = week.skills[i];
+                        if (s) {
+                            skillsHTML += `<div class="row-item ${s.isPartner ? 'role-partner' : ''}"><div class="col-left">${s.name}</div><div class="col-time"></div><div class="col-right">${s.assign}</div></div>`;
+                        } else {
+                            skillsHTML += `<div class="row-item"><div class="col-left">&nbsp;</div><div class="col-time"></div><div class="col-right">&nbsp;</div></div>`;
+                        }
+                    }
+
+                    let livingHTML = '';
+                    week.living.items.forEach(item => {
+                        livingHTML += `<div class="row-item"><div class="col-left">${item.name}</div><div class="col-time">${item.time}</div><div class="col-right">${item.assign}</div></div>`;
+                    });
+                    if (week.living.items.length < 2) {
+                        for(let k = week.living.items.length; k < 2; k++) {
+                            livingHTML += `<div class="row-item"><div class="col-left">&nbsp;</div><div class="col-time"></div><div class="col-right">&nbsp;</div></div>`;
+                        }
+                    }
+
+                    let specialBlockHTML = '';
+                    if (week.type === 'rs') {
+                        specialBlockHTML = `
+                            <div class="special-footer-block">
+                                <div class="row-item"><div class="col-left">Выступление РС</div><div class="col-time"></div><div class="col-right">${week.living.rsSpeech.assign}</div></div>
+                                <div class="rs-speech-title">"${week.living.rsSpeech.title}"</div>
+                            </div>
+                        `;
+                    } else {
+                        specialBlockHTML = `
+                            <div class="special-footer-block">
+                                <div class="row-item"><div class="col-left">Изучение Библии</div><div class="col-time">${week.living.bibleStudy.time}</div><div class="col-right">${week.living.bibleStudy.assign}</div></div>
+                                <div class="row-item"><div class="col-left">Чтец</div><div class="col-time"></div><div class="col-right">${week.living.bibleStudy.reader}</div></div>
+                            </div>
+                        `;
+                    }
+
+                    card.innerHTML = `
+                        <div class="week-header"><span class="week-date">${week.date}</span></div>
+                        <div class="week-body">
+                            <div class="normal-program-wrapper">
+                                <div class="row-item"><div class="col-left">Председатель</div><div class="col-time">${week.song1Time}</div><div class="col-right">${week.chairman}</div></div>
+                                <div class="row-item"><div class="col-left">Песня</div><div class="col-time"></div><div class="col-right">№ ${week.song1}</div></div>
+                                <div class="row-item"><div class="col-left">Вступ. молитва</div><div class="col-time"></div><div class="col-right">${week.prayer1}</div></div>
+                                
+                                <div class="section-title">💎 Сокровища из Слова</div>
+                                ${treasuresHTML}
+
+                                <div class="section-title">📢 Оттачиваем навыки</div>
+                                <div class="skills-container">${skillsHTML}</div>
+
+                                <div class="section-title">🌳 Христианская жизнь</div>
+                                <div class="cl-container">
+                                    <div class="row-item"><div class="col-left">Песня</div><div class="col-time">${week.living.song2Time}</div><div class="col-right">№ ${week.living.song2}</div></div>
+                                    ${livingHTML}
+                                    ${specialBlockHTML}
+                                </div>
+
+                                <div class="card-footer-meeting">
+                                    <div class="row-item"><div class="col-left">Песня</div><div class="col-time">${week.footer.song3Time}</div><div class="col-right">№ ${week.footer.song3}</div></div>
+                                    <div class="row-item"><div class="col-left">Закл. молитва</div><div class="col-time"></div><div class="col-right">${week.footer.prayer2}</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                container.appendChild(card);
+            });
+
+            updateNavigationButtons();
+            setTimeout(syncSkillsHeight, 20);
+        }
+
+        function syncSkillsHeight() {
+            const containers = document.querySelectorAll('.skills-container');
+            if (containers.length === 0) return;
+            
+            containers.forEach(c => c.style.height = 'auto');
+            const isLandscape = document.getElementById('a4Sheet').classList.contains('sheet-landscape');
+            
+            if (isLandscape) {
+                let maxHeight = 0;
+                containers.forEach(c => {
+                    if (c.offsetHeight > maxHeight) maxHeight = c.offsetHeight;
+                });
+                containers.forEach(c => c.style.height = maxHeight + 'px');
+            } else {
+                const row1 = [containers[0], containers[1]];
+                const row2 = [containers[2], containers[3]];
+                
+                [row1, row2].forEach(row => {
+                    let maxHeight = 0;
+                    row.forEach(c => {
+                        if (c && c.offsetHeight > maxHeight) maxHeight = c.offsetHeight;
+                    });
+                    row.forEach(c => {
+                        if (c) c.style.height = maxHeight + 'px';
+                    });
+                });
+            }
+        }
+
+        function updateNavigationButtons() {
+            const btnPrev = document.getElementById('btnPrev');
+            const btnNext = document.getElementById('btnNext');
+            const maxPages = Math.ceil(scheduleData.length / 4);
+
+            if (currentPage === 0) {
+                btnPrev.disabled = true;
+                btnPrev.classList.add('disabled');
+            } else {
+                btnPrev.disabled = false;
+                btnPrev.classList.remove('disabled');
+            }
+
+            if (currentPage >= maxPages - 1 || maxPages === 0) {
+                btnNext.disabled = true;
+                btnNext.classList.add('disabled');
+            } else {
+                btnNext.disabled = false;
+                btnNext.classList.remove('disabled');
+            }
+        }
+
+        function navigateWeeks(direction) {
+            const newPage = currentPage + direction;
+            const maxPages = Math.ceil(scheduleData.length / 4);
+            
+            if (newPage >= 0 && newPage < maxPages) {
+                currentPage = newPage;
+                renderSchedule();
+                adjustMobileScale(currentLayoutMode);
+            }
+        }
+
+        function changeMode(mode) {
+            currentLayoutMode = mode;
+            const container = document.getElementById('gridContainer');
+            const sheet = document.getElementById('a4Sheet');
+            const style = document.createElement('style');
+            
+            if (mode === '1x4') {
+                container.classList.remove('mode-2x2');
+                container.classList.add('mode-1x4');
+                sheet.classList.remove('sheet-portrait');
+                sheet.classList.add('sheet-landscape');
+                style.innerHTML = '@page { size: A4 landscape; margin: 0; }';
+            } else {
+                container.classList.remove('mode-1x4');
+                container.classList.add('mode-2x2');
+                sheet.classList.remove('sheet-landscape');
+                sheet.classList.add('sheet-portrait');
+                style.innerHTML = '@page { size: A4 portrait; margin: 0; }';
+            }
+            
+            const oldStyle = document.getElementById('print-page-size');
+            if (oldStyle) oldStyle.remove();
+            style.id = 'print-page-size';
+            document.head.appendChild(style);
+
+            adjustMobileScale(mode);
+            setTimeout(syncSkillsHeight, 50);
+        }
+
+        function adjustMobileScale(currentMode) {
+            const sheet = document.getElementById('a4Sheet');
+            if (!sheet) return;
+
+            const mode = currentMode || (sheet.classList.contains('sheet-landscape') ? '1x4' : '2x2');
+            const targetWidth = mode === '1x4' ? 1122 : 793;
+            const targetHeight = mode === '1x4' ? 793 : 1122;
+
+            if (window.innerWidth < (targetWidth + 20)) {
+                const scale = (window.innerWidth - 10) / targetWidth; 
+                sheet.style.transform = `scale(${scale})`;
+                sheet.style.marginBottom = `calc(${targetHeight}px * (${scale} - 1))`;
+            } else {
+                sheet.style.transform = 'none';
+                sheet.style.marginBottom = '0px';
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            adjustMobileScale(currentLayoutMode);
+            syncSkillsHeight();
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            changeMode('2x2');
+            loadScheduleFromGoogle();
+        });
     </script>
 </body>
 </html>
