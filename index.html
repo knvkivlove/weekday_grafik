@@ -198,8 +198,8 @@
         .row-item {
             display: flex;
             align-items: flex-start;
-            line-height: 1.2; /* Уменьшили межстрочный интервал для плотности */
-            margin-bottom: 2px; /* Сжали расстояние между строками */
+            line-height: 1.2;
+            margin-bottom: 2px;
             width: 100%;
         }
 
@@ -232,7 +232,6 @@
             white-space: normal; 
         }
 
-        /* Принудительный цвет для учебных ассистентов и чтения Библии */
         .row-item.role-partner .col-left,
         .row-item.role-student .col-right,
         .skills-container .col-right {
@@ -240,7 +239,6 @@
             font-weight: normal;
         }
 
-        /* Аккуратное увеличение ФИО на 1 пункт только в режиме 2х2 */
         .mode-2x2 .col-right {
             font-size: 9pt;
         }
@@ -250,7 +248,7 @@
             font-weight: bold;
             color: #222222;
             text-transform: uppercase;
-            margin-top: 4px; /* Немного уменьшили отступ сверху */
+            margin-top: 4px;
             margin-bottom: 2px;
             border-bottom: 1px solid var(--border-gray);
             padding-bottom: 1px;
@@ -469,7 +467,8 @@
 
                     if (weekType.includes('конгресс') || weekType.includes('congress')) {
                         weekObj.type = 'congress';
-                        weekObj.congressText = matrix[50]?.[col] || 'РАЙОННЫЙ КОНГРЕСС';
+                        // Исправлено: 50 строка таблицы соответствует индексу 49 в JS
+                        weekObj.congressText = matrix[49]?.[col] || 'РАЙОННЫЙ КОНГРЕСС';
                         loadedWeeks.push(weekObj);
                         continue;
                     }
