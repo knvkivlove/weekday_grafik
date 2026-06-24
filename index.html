@@ -141,6 +141,10 @@
             border: 1.5px solid var(--rs-red);
         }
 
+        .week-card.type-congress {
+            border: 1.5px solid #d32f2f;
+        }
+
         .week-header {
             background-color: var(--pastel-blue);
             padding: 5px;
@@ -153,13 +157,18 @@
             border-bottom: 1.5px solid var(--rs-red);
         }
 
+        .week-card.type-congress .week-header {
+            background-color: #ffebee;
+            border-bottom: 1.5px solid var(--rs-red);
+        }
+
         .week-date {
             font-size: 9.5pt;
             font-weight: bold;
             color: var(--text-blue);
         }
 
-        .week-card.type-rs .week-date {
+        .week-card.type-rs .week-date, .week-card.type-congress .week-date {
             color: var(--rs-red);
         }
 
@@ -185,12 +194,14 @@
             width: 100%;
         }
 
+        /* Названия пунктов теперь никогда не переносятся на вторую строчку */
         .col-left {
             font-weight: bold;
             color: #333333;
             width: 45%;            
-            white-space: normal; 
-            word-wrap: break-word;
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
             padding-right: 5px;
         }
 
@@ -209,6 +220,7 @@
             padding: 0 2px;
         }
 
+        /* ФИО по-прежнему может переноситься, если строка длинная */
         .col-right {
             font-weight: bold;
             color: var(--text-blue); 
@@ -274,20 +286,22 @@
             flex-direction: column;
             justify-content: center; 
             align-items: center;     
-            background-color: var(--pastel-red);
+            background-color: #ffebee;
             padding: 10px;
-            min-height: 250px; 
+            min-height: 200px; 
             text-align: center;
-            border: 1.5px solid var(--rs-red);
+            border: 1.5px dashed var(--rs-red);
             border-radius: 4px;
+            margin: auto 0;
         }
         
         .congress-text {
-            font-size: 14pt;
+            font-size: 13pt;
             font-weight: 900;
             color: var(--rs-red);
             text-transform: uppercase;
             letter-spacing: 1px;
+            line-height: 1.4;
         }
 
         .card-footer-meeting {
@@ -411,6 +425,7 @@
                 let loadedWeeks = [];
                 const columnsCount = matrix[2] ? matrix[2].length : 0;
 
+                // Точный поиск стартового столбца по галочке TRUE в первой строке (matrix[0])
                 let startColumnIndex = -1;
                 for (let col = 1; col < columnsCount; col++) {
                     const isSelected = matrix[0]?.[col];
@@ -421,7 +436,7 @@
                 }
 
                 if (startColumnIndex === -1) {
-                    startColumnIndex = 1;
+                    startColumnIndex = 1; 
                 }
 
                 for (let col = startColumnIndex; col < columnsCount; col++) {
@@ -429,18 +444,19 @@
                     if (!dateStr) continue;
 
                     const prettyDate = formatReadableDate(dateStr);
-                    const weekType = (matrix[1]?.[col] || '').trim();
+                    const weekType = (matrix[1]?.[col] || '').trim().toLowerCase();
                     
                     let weekObj = { date: prettyDate, type: 'normal' };
 
-                    if (weekType.includes('Конгресс') || weekType.includes('конгресс')) {
+                    // Определение конгресса
+                    if (weekType.includes('конгресс') || weekType.includes('congress')) {
                         weekObj.type = 'congress';
-                        weekObj.congressText = matrix[49]?.[col] || 'РАЙОННЫЙ КОНГРЕСС';
+                        weekObj.congressText = matrix[50]?.[col] || 'РАЙОННЫЙ КОНГРЕСС';
                         loadedWeeks.push(weekObj);
                         continue;
                     }
 
-                    if (weekType.includes('визит') || weekType.includes('Визит') || weekType.includes('РС')) {
+                    if (weekType.includes('визит') || weekType.includes('рс')) {
                         weekObj.type = 'rs';
                     }
 
@@ -449,14 +465,14 @@
                     weekObj.song1 = matrix[5]?.[col] || '';
                     weekObj.prayer1 = matrix[6]?.[col] || '';
 
-                    // Сокровища из Слова Бога (Исправлено чтение Библии на строку 14 -> индекс 13)
+                    // Сокровища из Слова Бога (Строка 14 -> индекс 13)
                     weekObj.treasures = [
                         { name: "Пункт № 1", time: matrix[8]?.[col] || '', assign: matrix[9]?.[col] || '' },
                         { name: "Духовные жемчужины", time: matrix[10]?.[col] || '', assign: matrix[11]?.[col] || '' },
                         { name: "Чтение Библии", time: matrix[12]?.[col] || '', assign: matrix[13]?.[col] || '' }
                     ];
 
-                    // Оттачиваем навыки служения
+                    // Оттачиваем навыки служения (Всегда оригинальные названия)
                     weekObj.skills = [];
                     const ministryRows = [15, 18, 21, 24];
                     ministryRows.forEach(rIdx => {
@@ -492,17 +508,17 @@
                         }
                     });
 
-                    // Ветвление логики (Исправлены индексы для Визита РС по скриншоту)
+                    // Ветвление логики для Визита РС (Строки 45-48)
                     if (weekObj.type === 'rs') {
                         weekObj.living.rsSpeech = {
                             time: '', 
-                            assign: matrix[44]?.[col] || '', // Строка 45: Докладчик
-                            title: matrix[45]?.[col] || ''   // Строка 46: Название речи
+                            assign: matrix[44]?.[col] || '', 
+                            title: matrix[45]?.[col] || ''   
                         };
                         weekObj.footer = {
                             song3Time: '',
-                            song3: matrix[46]?.[col] || '',  // Строка 47: Песня №
-                            prayer2: matrix[47]?.[col] || '' // Строка 48: Закл. молитва
+                            song3: matrix[46]?.[col] || '',  
+                            prayer2: matrix[47]?.[col] || '' 
                         };
                     } else {
                         weekObj.living.bibleStudy = {
@@ -544,9 +560,9 @@
 
             currentWeeks.forEach(week => {
                 const card = document.createElement('div');
-                card.className = `week-card ${week.type === 'rs' ? 'type-rs' : ''}`;
-
+                
                 if (week.type === 'congress') {
+                    card.className = 'week-card type-congress';
                     card.innerHTML = `
                         <div class="week-header"><span class="week-date">${week.date}</span></div>
                         <div class="week-body">
@@ -556,6 +572,8 @@
                         </div>
                     `;
                 } else {
+                    card.className = `week-card ${week.type === 'rs' ? 'type-rs' : ''}`;
+                    
                     let treasuresHTML = '';
                     week.treasures.forEach(t => {
                         treasuresHTML += `<div class="row-item"><div class="col-left">${t.name}</div><div class="col-time">${t.time}</div><div class="col-right">${t.assign}</div></div>`;
@@ -565,7 +583,7 @@
                     for (let i = 0; i < 8; i++) {
                         const s = week.skills[i];
                         if (s && s.name) {
-                            skillsHTML += `<div class="row-item ${s.isPartner ? 'role-partner' : ''}"><div class="col-left">${s.name}</div><div class="col-time"></div><div class="col-right">${s.assign}</div></div>`;
+                            skillsHTML += `<div class="row-item ${s.isPartner ? 'role-partner' : ''}"><div class="col-left" title="${s.name}">${s.name}</div><div class="col-time"></div><div class="col-right">${s.assign}</div></div>`;
                         } else {
                             skillsHTML += `<div class="row-item"><div class="col-left">&nbsp;</div><div class="col-time"></div><div class="col-right">&nbsp;</div></div>`;
                         }
@@ -573,7 +591,7 @@
 
                     let livingHTML = '';
                     week.living.items.forEach(item => {
-                        livingHTML += `<div class="row-item"><div class="col-left">${item.name}</div><div class="col-time">${item.time}</div><div class="col-right">${item.assign}</div></div>`;
+                        livingHTML += `<div class="row-item"><div class="col-left" title="${item.name}">${item.name}</div><div class="col-time">${item.time}</div><div class="col-right">${item.assign}</div></div>`;
                     });
                     if (week.living.items.length < 2) {
                         for(let k = week.living.items.length; k < 2; k++) {
